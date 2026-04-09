@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'master'
+      - master
       - '[0-9]+.[0-9]+'
+      - main
     tags:
-      - 'v*'
+      - v*
   pull_request:
 
 jobs:
@@ -34,11 +35,9 @@ jobs:
           # TODO(krissetto) 19.03 needs a look, doesn't work ubuntu 22.04 (cgroup errors). 
           # we could have a separate job that tests it against ubuntu 20.04
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Update daemon.json
+      - name: Update daemon.json
         run: |
           if [ ! -f /etc/docker/daemon.json ]; then
             # ubuntu 24.04 runners no longer have a default daemon.json present
@@ -53,19 +52,16 @@ jobs:
           sudo service docker restart
           docker version
           docker info
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Run ${{ matrix.target }}
+      - name: Run ${{ matrix.target }}
         run: |
           make -f docker.Makefile test-e2e-${{ matrix.target }}
         env:
           BASE_VARIANT: ${{ matrix.base }}
           ENGINE_VERSION: ${{ matrix.engine-version }}
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
-      -
-        name: Send to Codecov
+      - name: Send to Codecov
         uses: codecov/codecov-action@v4
         with:
           file: ./build/coverage/coverage.txt

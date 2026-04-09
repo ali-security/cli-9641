@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'master'
+      - master
       - '[0-9]+.[0-9]+'
+      - main
     tags:
-      - 'v*'
+      - v*
   pull_request:
 
 jobs:
@@ -26,11 +27,9 @@ jobs:
           - validate-vendor
           - update-authors # ensure authors update target runs fine
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Run
+      - name: Run
         uses: docker/bake-action@v5
         with:
           targets: ${{ matrix.target }}
@@ -39,16 +38,13 @@ jobs:
   validate-md:
     runs-on: ubuntu-24.04
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Generate
-        shell: 'script --return --quiet --command "bash {0}"'
+      - name: Generate
+        shell: script --return --quiet --command "bash {0}"
         run: |
           make -f docker.Makefile mddocs
-      -
-        name: Validate
+      - name: Validate
         run: |
           if [[ $(git diff --stat) != '' ]]; then
             echo 'fail: generated files do not match checked-in files'
@@ -65,11 +61,9 @@ jobs:
           - yamldocs # ensure yamldocs target runs fine
           - manpages # ensure manpages target runs fine
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Run
-        shell: 'script --return --quiet --command "bash {0}"'
+      - name: Run
+        shell: script --return --quiet --command "bash {0}"
         run: |
           make -f docker.Makefile ${{ matrix.target }}

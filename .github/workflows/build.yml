@@ -11,10 +11,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'master'
+      - master
       - '[0-9]+.[0-9]+'
+      - main
     tags:
-      - 'v*'
+      - v*
   pull_request:
 
 jobs:
@@ -23,16 +24,13 @@ jobs:
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Create matrix
+      - name: Create matrix
         id: platforms
         run: |
           echo "matrix=$(docker buildx bake cross --print | jq -cr '.target."cross".platforms')" >>${GITHUB_OUTPUT}
-      -
-        name: Show matrix
+      - name: Show matrix
         run: |
           echo ${{ steps.platforms.outputs.matrix }}
 
@@ -48,19 +46,16 @@ jobs:
           - dynbinary
         platform: ${{ fromJson(needs.prepare.outputs.matrix) }}
         use_glibc:
-          - ""
+          - ''
           - glibc
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Build
+      - name: Build
         uses: docker/bake-action@v5
         with:
           targets: ${{ matrix.target }}
@@ -68,8 +63,7 @@ jobs:
             *.platform=${{ matrix.platform }}
         env:
           USE_GLIBC: ${{ matrix.use_glibc }}
-      -
-        name: Create tarball
+      - name: Create tarball
         working-directory: ./build
         run: |
           mkdir /tmp/out
@@ -81,8 +75,7 @@ jobs:
           else
             echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}-glibc" >> $GITHUB_ENV
           fi
-      -
-        name: Upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -93,17 +86,13 @@ jobs:
     runs-on: ubuntu-24.04
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Docker meta
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -113,15 +102,13 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
-      -
-        name: Login to DockerHub
+      - name: Login to DockerHub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
           password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
-      -
-        name: Build and push image
+      - name: Build and push image
         uses: docker/bake-action@v5
         with:
           files: |
@@ -138,16 +125,13 @@ jobs:
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Create matrix
+      - name: Create matrix
         id: platforms
         run: |
           echo "matrix=$(docker buildx bake plugins-cross --print | jq -cr '.target."plugins-cross".platforms')" >>${GITHUB_OUTPUT}
-      -
-        name: Show matrix
+      - name: Show matrix
         run: |
           echo ${{ steps.platforms.outputs.matrix }}
 
@@ -160,14 +144,11 @@ jobs:
       matrix:
         platform: ${{ fromJson(needs.prepare-plugins.outputs.matrix) }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Build
+      - name: Build
         uses: docker/bake-action@v5
         with:
           targets: plugins-cross

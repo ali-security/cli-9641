@@ -2,29 +2,18 @@ name: codeql
 
 on:
   push:
-    branches: 
-      - 'master' 
-      - '[0-9]+.[0-9]+' 
-    tags: 
-      - 'v*' 
+    branches:
+      - master
+      - '[0-9]+.[0-9]+'
+      - main
+    tags:
+      - v*
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master" ]
-  schedule:
-    #        ┌───────────── minute (0 - 59)
-    #        │ ┌───────────── hour (0 - 23)
-    #        │ │ ┌───────────── day of the month (1 - 31)
-    #        │ │ │ ┌───────────── month (1 - 12)
-    #        │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday)
-    #        │ │ │ │ │
-    #        │ │ │ │ │
-    #        │ │ │ │ │
-    #        * * * * *
-    - cron: '0 9 * * 4'
-
+    branches: [master, main]
 jobs:
   codeql:
-    runs-on: 'ubuntu-latest'
+    runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
       DISABLE_WARN_OUTSIDE_CONTAINER: '1'
@@ -32,15 +21,13 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    
+
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      -
-        name: Checkout HEAD on PR
+      - name: Checkout HEAD on PR
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           git checkout HEAD^2
@@ -49,26 +36,21 @@ jobs:
       # including vendor directories. If no module is found, it's creating one
       # which is ... not what we want, so let's give it a "go.mod".
       # see: https://github.com/docker/cli/pull/4944#issuecomment-2002034698
-      -
-        name: Create go.mod
+      - name: Create go.mod
         run: |
           ln -s vendor.mod go.mod
           ln -s vendor.sum go.sum
-      -
-        name: Update Go
+      - name: Update Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      -
-        name: Initialize CodeQL
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: go
-      -
-        name: Autobuild
+      - name: Autobuild
         uses: github/codeql-action/autobuild@v3
-      -
-        name: Perform CodeQL Analysis
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:go"
+          category: /language:go
